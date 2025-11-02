@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marching squares</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --cell-size: 50px;
+        --fill: hsl(142, 90%, 45%);
+
+        button {
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          padding: 10px 24px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #333;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          outline: none;
+
+          &:hover {
+            background: #fafafa;
+            border-color: #d0d0d0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+          }
+
+          &:active {
+            background: #f5f5f5;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transform: translateY(0);
+          }
+
+          &:focus-visible {
+            border-color: #999;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+          }
+        }
+
+        .container {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 20px;
+          padding: 40px;
+        }
+
+        input[type="checkbox"] {
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 4px;
+          cursor: pointer;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          z-index: 1;
+          position: relative;
+
+          &:hover {
+            border-color: #d0d0d0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+          }
+
+          &:checked {
+            background: #383;
+            border-color: #383;
+
+            &::after {
+              content: " ";
+              position: absolute;
+              left: 4px;
+              top: 1px;
+              width: 4px;
+              height: 8px;
+              border: solid white;
+              border-width: 0 2px 2px 0;
+              transform: rotate(45deg);
+            }
+          }
+
+          &:focus-visible {
+            outline: none;
+            border-color: #999;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+          }
+        }
+
+        #root {
+          display: grid;
+
+          .cell {
+            position: relative;
+            width: var(--cell-size);
+            height: var(--cell-size);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+          }
+
+          /* tile styles starts here */
+
+          .cell.checked {
+            background-color: var(--fill);
+          }
+
+          .tile {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+          }
+
+          .corner {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+          }
+
+          .corner-tl { top: 0; left: 0; }
+          .corner-tr { top: 0; right: 0; }
+          .corner-br { bottom: 0; right: 0; }
+          .corner-bl { bottom: 0; left: 0; }
+
+          .tl .corner-tl {
+            background-color: var(--fill);
+            mask-image: radial-gradient(circle at bottom right, transparent 70%, var(--fill) 0);
+          }
+
+          .tr .corner-tr {
+            background-color: var(--fill);
+            mask-image: radial-gradient(circle at bottom left, transparent 70%, var(--fill) 0);
+          }
+
+          .br .corner-br {
+            background-color: var(--fill);
+            mask-image: radial-gradient(circle at top left, transparent 70%, var(--fill) 0);
+          }
+
+          .bl .corner-bl {
+            background-color: var(--fill);
+            mask-image: radial-gradient(circle at top right, transparent 70%, var(--fill) 0);
+          }
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <button id="randomize">randomize</button>
+
+      <div id="root" data-cols="10" data-rows="10"></div>
+      <template id="cell">
+        <div class="tile">
+          <div class="corner corner-tl"></div>
+          <div class="corner corner-tr"></div>
+          <div class="corner corner-br"></div>
+          <div class="corner corner-bl"></div>
+        </div>
+      </template>
+    </div>
+
+    <script>
+      const root = document.getElementById('root')
+      const randomizeButton = document.getElementById('randomize')
+      const cellTemplate = document.getElementById('cell')
+
+      const cols = Number(root.dataset.cols)
+      const rows = Number(root.dataset.rows)
+      root.style.gridTemplateColumns = `repeat(${cols}, 1fr)`
+
+      // execute first time
+      geterateCells(rows, cols)
+      randomize()
+
+      function geterateCells(rows, cols) {
+        for (let j = 0; j < rows; j++) {
+          for (let i = 0; i < cols; i++) {
+            const cell = document.createElement('div')
+            cell.classList.add('cell')
+            cell.dataset.col = i
+            cell.dataset.row = j
+
+            cell.appendChild(document.importNode(cellTemplate.content, true))
+
+            if (i !== cols && j !== rows) {
+              const input = document.createElement('input')
+              input.type = 'checkbox'
+              cell.appendChild(input)
+            }
+            root.appendChild(cell)
+          }
+        }
+      }
+
+      function getCell(col, row) {
+        return root.querySelector(`[data-col="${col}"][data-row="${row}"]`)
+      }
+
+      function isChecked(col, row) {
+        const cell = getCell(col, row)
+        if (!cell) return false
+        const checkbox = cell.querySelector('input[type="checkbox"]')
+        return checkbox && checkbox.checked
+      }
+
+      function updateCellClasses(col, row) {
+        const cell = getCell(col, row)
+        if (!cell || !cell.querySelector('.tile')) return
+
+        cell.classList.remove('tl', 'tr', 'bl', 'br', 'checked')
+
+        const siblings = {
+          tl: isChecked(col - 1, row - 1),
+          tc: isChecked(col, row - 1),
+          tr: isChecked(col + 1, row - 1),
+          cr: isChecked(col + 1, row),
+          br: isChecked(col + 1, row + 1),
+          bc: isChecked(col, row + 1),
+          bl: isChecked(col - 1, row + 1),
+          cl: isChecked(col - 1, row)
+        }
+
+        if (isChecked(col, row)) {
+          cell.classList.add('checked')
+
+          Object.keys(siblings).forEach(sib => {
+            if (!siblings[sib]) return
+
+            if (sib.includes('c')) {
+              // handle center sides
+              const [v, h] = sib.split('')
+
+              if (v === 'c') {
+                cell.classList.add(`t${h}`)
+                cell.classList.add(`b${h}`)
+              } else {
+                cell.classList.add(`${v}l`)
+                cell.classList.add(`${v}r`)
+              }
+            } else {
+              // handle corners
+              cell.classList.add(`${sib}`)
+            }
+          })
+        } else {
+          // handle corners of unchecked cells
+          if (siblings.tc && siblings.cl) {
+            cell.classList.add('tl')
+          }
+
+          if (siblings.tc && siblings.cr) {
+            cell.classList.add('tr')
+          }
+
+          if (siblings.cr && siblings.bc) {
+            cell.classList.add('br')
+          }
+
+          if (siblings.bc && siblings.cl) {
+            cell.classList.add('bl')
+          }
+        }
+      }
+
+      function updateAllCells() {
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < rows; j++) {
+            updateCellClasses(i, j)
+          }
+        }
+      }
+
+      function randomize() {
+        const checkboxes = root.querySelectorAll('input[type="checkbox"]')
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = Math.random() > 0.5
+        })
+        updateAllCells()
+      }
+
+      root.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox') {
+          updateAllCells()
+        }
+      })
+
+      randomizeButton.addEventListener('click', randomize)
+    </script>
+  </body>
+</html>
