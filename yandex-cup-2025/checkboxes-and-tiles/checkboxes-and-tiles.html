@@ -193,11 +193,10 @@
 
             cell.appendChild(document.importNode(cellTemplate.content, true))
 
-            if (i !== cols && j !== rows) {
-              const input = document.createElement('input')
-              input.type = 'checkbox'
-              cell.appendChild(input)
-            }
+            const input = document.createElement('input')
+            input.type = 'checkbox'
+            cell.appendChild(input)
+
             root.appendChild(cell)
           }
         }
