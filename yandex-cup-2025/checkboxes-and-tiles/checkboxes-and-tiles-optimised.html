@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marching squares</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      :root {
+        --cell-size: 50px;
+        --fill: hsl(142, 90%, 45%);
+        --star-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 0C50 27.6142 72.3858 50 100 50C72.3858 50 50 72.3858 50 100C50 72.3858 27.6142 50 0 50C27.6142 50 50 27.6142 50 0Z" fill=%22black%22/></svg>');
+      }
+
+      body {
+        min-width: 100vw;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+
+      button {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        outline: none;
+
+        &:hover {
+          background: #fafafa;
+          border-color: #d0d0d0;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          background: #f5f5f5;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          transform: translateY(0);
+        }
+
+        &:focus-visible {
+          border-color: #999;
+          box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+      }
+
+      #root {
+        position: relative;
+
+        input[type="checkbox"] {
+          position: relative;
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 4px;
+          cursor: pointer;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+          &:hover {
+            border-color: #d0d0d0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+          }
+
+          &:checked {
+            background: #383;
+            border-color: #383;
+
+            &::after {
+              content: " ";
+              position: absolute;
+              left: 4px;
+              top: 1px;
+              width: 4px;
+              height: 8px;
+              border: solid white;
+              border-width: 0 2px 2px 0;
+              transform: rotate(45deg);
+            }
+
+            & + .checkbox-tile {
+              position: absolute;
+              left: 0;
+              top: 0;
+              bottom: 0;
+              right: 0;
+              background-color: var(--fill);
+              border-radius: 50%;
+              z-index: -1;
+            }
+          }
+
+          &:focus-visible {
+            outline: none;
+            border-color: #999;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+          }
+        }
+
+        #cells {
+          position: relative;
+          display: grid;
+        }
+
+        #tiles {
+          position: absolute;
+          top: calc(-1 * var(--cell-size) / 2);
+          left: calc(-1 * var(--cell-size) / 2);
+          right: calc(-1 * var(--cell-size) / 2);
+          bottom: calc(-1 * var(--cell-size) / 2);
+          display: grid;
+        }
+
+        .cell,
+        .tile {
+          position: relative;
+          width: var(--cell-size);
+          height: var(--cell-size);
+        }
+
+        .cell {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .tl.bl.tile {
+          background: linear-gradient(to left, transparent 50%, var(--fill) 50%);
+        }
+
+        .tr.br.tile {
+          background: linear-gradient(to right, transparent 50%, var(--fill) 50%);
+        }
+
+        .br.bl.tile {
+          background: linear-gradient(to bottom, transparent 50%, var(--fill) 50%);
+        }
+
+        .tr.tl.tile {
+          background: linear-gradient(to top, transparent 50%, var(--fill) 50%);
+        }
+
+        .tl.br.tile,
+        .tr.bl.tile {
+          background: var(--fill);
+          mask: var(--star-mask) center/contain no-repeat;
+          -webkit-mask: var(--star-mask) center/contain no-repeat;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button id="randomize">randomize</button>
+
+    <div id="root" data-cols="10" data-rows="10">
+      <div id="tiles"></div>
+      <div id="cells"></div>
+    </div>
+
+    <template id="cell">
+      <input type="checkbox" />
+      <div class="checkbox-tile"></div>
+    </template>
+
+    <script>
+      const root = document.getElementById('root')
+      const tiles = document.getElementById('tiles')
+      const cells = document.getElementById('cells')
+      const cellTemplate = document.getElementById('cell')
+      const randomizeButton = document.getElementById('randomize')
+
+      const cols = Number(root.dataset.cols)
+      const rows = Number(root.dataset.rows)
+      cells.style.gridTemplateColumns = `repeat(${cols}, 1fr`
+      tiles.style.gridTemplateColumns = `repeat(${cols + 1}, 1fr`
+
+      // execute first time
+      geterateCellsAndTiles(rows, cols)
+      randomize()
+
+      function geterateCellsAndTiles(rows, cols) {
+        // create two extra tiles for edges
+        for (let j = 0; j <= rows; j++) {
+          for (let i = 0; i <= cols; i++) {
+
+            const tileColIndex = getTileIndex(i, cols)
+            const tileRowIndex = getTileIndex(j, rows)
+
+            const tile = generateElem('tile', tileColIndex, tileRowIndex)
+            tiles.appendChild(tile)
+
+            if (i > cols - 1 || j > rows - 1) continue
+
+            const cell = generateElem('cell', i, j, cellTemplate)
+            cells.appendChild(cell)
+          }
+        }
+      }
+
+      function getTileIndex(val, max) {
+        // top or left edge
+        if (val === 0) return '0-0'
+        // bottom or right edge
+        if (val === max) return `${max - 1}-${max - 1}`
+        // regular tile
+        return `${val - 1}-${val}`
+      }
+
+      function generateElem(classname, col, row, template) {
+        const elem = document.createElement('div')
+        elem.classList.add(classname)
+        elem.dataset.col = col
+        elem.dataset.row = row
+        if (template) elem.appendChild(document.importNode(template.content, true))
+        return elem
+      }
+
+      function getElem(col, row, classname) {
+        return root.querySelector(`.${classname}[data-col="${col}"][data-row="${row}"]`)
+      }
+
+      function isChecked(col, row) {
+        const cell = getElem(col, row, 'cell')
+        if (!cell) return false
+        const checkbox = cell.querySelector('input[type="checkbox"]')
+        return checkbox && checkbox.checked
+      }
+
+      function updateTileClasses(col, row) {
+        const tile = getElem(col, row, 'tile')
+        if (!tile) return
+
+        tile.classList.remove('tl', 'tr', 'bl', 'br')
+
+        const [ colL, colR ] = col.split('-')
+        const [ rowT, rowB ] = row.split('-')
+        
+        // skip corners
+        if (colL === colR && rowT === rowB) return
+       
+        // left and right edges
+        if (colL === colR) {
+          if (isChecked(colL, rowT) && isChecked(colL, rowB)) {
+            const side = colL === '0' ? 'r' : 'l'
+            tile.classList.add(`t${side}`)
+            tile.classList.add(`b${side}`)
+          }
+          return
+        }
+
+        // top and bottom edges
+        if (rowT === rowB) {
+          if (isChecked(colL, rowT) && isChecked(colR, rowT)) {
+            const side = rowT === '0' ? 'b' : 't'
+            tile.classList.add(`${side}r`)
+            tile.classList.add(`${side}l`)
+          }
+          return
+        }
+
+        // all other tiles
+        if (isChecked(colL, rowT)) {
+          tile.classList.add('tl')
+        }
+
+        if (isChecked(colR, rowT)) {
+          tile.classList.add('tr')
+        }
+
+        if (isChecked(colL, rowB)) {
+          tile.classList.add('bl')
+        }
+
+        if (isChecked(colR, rowB)) {
+          tile.classList.add('br')
+        }
+      }
+
+      function updateAllTiles() {
+        const tilesArr = tiles.querySelectorAll('.tile')
+        tilesArr.forEach(tile => {
+          const cols = tile.dataset.col
+          const rows = tile.dataset.row
+          updateTileClasses(cols, rows)
+        })
+      }
+
+      function randomize() {
+        const checkboxes = root.querySelectorAll('input[type="checkbox"]')
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = Math.random() > 0.5
+        })
+        updateAllTiles()
+      }
+
+      root.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox') {
+          updateAllTiles()
+        }
+      })
+
+      randomizeButton.addEventListener('click', randomize)
+    </script>
+  </body>
+</html>
