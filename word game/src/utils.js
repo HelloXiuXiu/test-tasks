@@ -21,12 +21,6 @@ export function formatChars(guess, answer) {
   }));
 }
 
-export function isGameFinished(guess, answer, attempt, numOfAttempts) {
-  if (guess === answer) return true;
-  if (attempt >= numOfAttempts) return true;
-  return false;
-}
-
 // export const range = (start, end, step = 1) => {
 //   let output = [];
 //   if (typeof end === "undefined") {

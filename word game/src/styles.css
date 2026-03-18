@@ -1,15 +1,12 @@
-/*
-  Theme and global variables
-*/
 html {
   overflow-y: scroll;
 
   --game-spacing: 40px;
   --header-height: 4rem;
 
-  --color-success: hsl(150deg 70% 30%);
-  --color-warning: hsl(50deg 100% 30%);
-  --color-error: hsl(0deg 70% 45%);
+  --color-success: #1e8e40;
+  --color-warning: #bc7e01;
+  --color-error: #c70d00;
   --color-gray-100: hsl(0deg 0% 10%);
   --color-gray-300: hsl(0deg 0% 25%);
   --color-gray-500: hsl(0deg 0% 50%);
@@ -17,9 +14,6 @@ html {
   --color-gray-900: hsl(0deg 0% 90%);
 }
 
-/*
-  Custom styles
-*/
 body {
   font-family: sans-serif;
 }
@@ -79,7 +73,6 @@ h1 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 340px;
 }
 
 .guess {
@@ -91,7 +84,7 @@ h1 {
 .cell {
   --border-size: 2px;
   position: relative;
-  width: 20%;
+  width: clamp(44px, 4vw, 80px);
   aspect-ratio: 1 / 1;
   border: var(--border-size) solid var(--color-gray-700);
   border-radius: var(--radius);
@@ -106,65 +99,56 @@ h1 {
   display: grid;
   place-content: center;
   font-size: 2rem;
+  color: white;
   transform: rotateX(180deg) scaleY(0);
+  border-radius: var(--radius);
 }
 
-/*
-  Round the corners for the 4 cells at the very corners of
-  the game board
-*/
-.guess:first-of-type .cell:first-of-type {
+.guess:first-of-type .cell:first-of-type,
+.guess:first-of-type .cell:first-of-type .cell-inner {
   --radius: 4px 0px 0px 0px;
 }
-.guess:first-of-type .cell:last-of-type {
+.guess:first-of-type .cell:last-of-type,
+.guess:first-of-type .cell:last-of-type .cell-inner {
   --radius: 0px 4px 0px 0px;
 }
-.guess:last-of-type .cell:last-of-type {
+.guess:last-of-type .cell:last-of-type,
+.guess:last-of-type .cell:last-of-type .cell-inner {
   --radius: 0px 0px 4px 0px;
 }
-.guess:last-of-type .cell:first-of-type {
+.guess:last-of-type .cell:first-of-type,
+.guess:last-of-type .cell:first-of-type .cell-inner {
   --radius: 0px 0px 0px 4px;
 }
 
 .cell-inner.correct {
   background: var(--color-success);
-  color: white;
-  animation: tablo 750ms cubic-bezier(0, 0.72, 0.24, 1.02);
 }
 .cell-inner.incorrect {
   background: var(--color-gray-300);
-  border-color: var(--color-gray-300);
-  color: white;
-  animation: tablo 750ms cubic-bezier(0, 0.72, 0.24, 1.02);
 }
 .cell-inner.misplaced {
   background: var(--color-warning);
-  border-color: var(--color-warning);
-  color: white;
-  animation: flipVertical 750ms ease-in-out forwards;
 }
 
 .cell-inner.correct,
 .cell-inner.incorrect,
 .cell-inner.misplaced {
-  animation: flipVertical 750ms ease-in-out forwards;
+  animation: flipVertical 550ms ease-in-out forwards;
 }
 
 .guess-input-wrapper {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: 6.75rem;
-}
-
-.guess-input-wrapper label {
-  font-size: 1.25rem;
+  width: clamp(200px, 80vw, 340px);
+  font-size: 14px;
 }
 
 .guess-input-wrapper input {
   display: block;
   width: 100%;
-  font-size: 2rem;
+  font-size: 1rem;
   border: 2px solid var(--color-gray-300);
   border-radius: 4px;
   padding: 8px 16px;
@@ -206,6 +190,62 @@ h1 {
 .sad.banner {
   background: var(--color-error);
   color: white;
+}
+
+/*
+  Keyboard
+*/
+
+.keyboad {
+  --size: clamp(40px, 9vw, 50px);
+  display: flex;
+  gap: 8px;
+  max-width: 600px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.keyboard-char {
+  width: var(--size);
+  height: var(--size);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-gray-900);
+  border-radius: 4px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.keyboard-char.correct {
+  background-color: var(--color-success);
+}
+
+.keyboard-char.incorrect {
+  background-color: var(--color-gray-300);
+  pointer-events: none;
+}
+
+.keyboard-char:active {
+  transform: scale(0.9);
+  transition: transform 0.2s ease-in-out;
+  background-color: var(--color-gray-700);
+}
+
+.keyboard-char:nth-child(11) {
+  margin-left: calc(var(--size) / 2);
+}
+
+.keyboard-char:nth-child(19) {
+  margin-right: calc(var(--size) / 2);
+}
+
+@media (max-width: 680px) {
+  .keyboard-char:nth-child(11),
+  .keyboard-char:nth-child(19) {
+    margin-left: unset;
+    margin-right: unset;
+  }
 }
 
 /*

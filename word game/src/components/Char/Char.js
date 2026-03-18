@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 function Char({ charObj, animDelay }) {
   return (
     <div className="cell">
@@ -11,4 +13,4 @@ function Char({ charObj, animDelay }) {
   );
 }
 
-export default Char;
+export default memo(Char);
