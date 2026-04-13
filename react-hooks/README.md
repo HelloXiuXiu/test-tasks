@@ -5,8 +5,8 @@ Solutions for exercises from https://bigfrontend.dev/react/
 1. useUpdateEffect - updates when deps are changed, but not on the first render
 2. useClickOutside - runs callback when element is clicked outside
 3. useTimeout - runs callback after a given time, caches the callback
+4. useIsFirstRender - shows if that't the first render
 
-4. useArray
 5. useFocus
 6. useEffectOnce
 7. useDebounce
@@ -14,6 +14,6 @@ Solutions for exercises from https://bigfrontend.dev/react/
 9. useHover
 10. usePrevious
 11. useSWR
-12. useIsFirstRender
+12. useArray
 13. useIsMounted - when we handle async requests, we need to check if the component is already unmounted. the hook returns a boolean value
 

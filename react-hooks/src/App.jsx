@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Popup } from './Popup'
 
-import useTimeout from './hooks/useTimeout'
+import useIsFirstRender from './hooks/useIsFirstRender'
 
 // helps to handle strick mode
 window.env = 'development'
@@ -9,9 +9,8 @@ window.env = 'development'
 function App() {
   const [show, setShow] = useState(false)
 
-  useTimeout(() => {
-    console.log('kek')
-  }, 2000)
+  const isFirstRender = useIsFirstRender()
+  console.log('isFirstRender', isFirstRender)
 
   return (
     <>
