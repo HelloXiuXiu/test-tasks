@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Popup } from './Popup'
 
-import useIsFirstRender from './hooks/useIsFirstRender'
+import useIsUnmounted from './hooks/useIsUnmounted'
 
 // helps to handle strick mode
 window.env = 'development'
@@ -9,8 +9,8 @@ window.env = 'development'
 function App() {
   const [show, setShow] = useState(false)
 
-  const isFirstRender = useIsFirstRender()
-  console.log('isFirstRender', isFirstRender)
+  const isUnmounted = useIsUnmounted()
+  console.log('isUnmounted', isUnmounted)
 
   return (
     <>

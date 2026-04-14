@@ -6,8 +6,9 @@ Solutions for exercises from https://bigfrontend.dev/react/
 2. useClickOutside - runs callback when element is clicked outside
 3. useTimeout - runs callback after a given time, caches the callback
 4. useIsFirstRender - shows if that't the first render
+5. useIsMounted - when we handle async requests, we need to check if the component is already unmounted. the hook returns a boolean value
 
-5. useFocus
+
 6. useEffectOnce
 7. useDebounce
 8. useToggle
@@ -15,5 +16,5 @@ Solutions for exercises from https://bigfrontend.dev/react/
 10. usePrevious
 11. useSWR
 12. useArray
-13. useIsMounted - when we handle async requests, we need to check if the component is already unmounted. the hook returns a boolean value
+13. useFocus
 
