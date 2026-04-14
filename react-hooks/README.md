@@ -7,13 +7,13 @@ Solutions for exercises from https://bigfrontend.dev/react/
 3. useTimeout - runs callback after a given time, caches the callback
 4. useIsFirstRender - shows if that't the first render
 5. useIsMounted - when we handle async requests, we need to check if the component is already unmounted. the hook returns a boolean value
+6. usePrevious - hook returns the previous value, with initial previous value of undefined
 
 
-6. useEffectOnce
 7. useDebounce
 8. useToggle
 9. useHover
-10. usePrevious
+10. useEffectOnce
 11. useSWR
 12. useArray
 13. useFocus

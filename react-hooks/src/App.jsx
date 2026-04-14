@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react'
 import { Popup } from './Popup'
 
-import useIsUnmounted from './hooks/useIsUnmounted'
+import usePrevious from './hooks/usePrevious'
 
 // helps to handle strick mode
 window.env = 'development'
 
 function App() {
-  const [show, setShow] = useState(false)
+  const [show, setShow] = useState(1)
 
-  const isUnmounted = useIsUnmounted()
-  console.log('isUnmounted', isUnmounted)
+  const prev = usePrevious(show)
+  console.log({ prev, cur: show})
 
   return (
     <>
-      <button onClick={() => setShow(true)}>show popup</button>
-      {show && <Popup setShow={() => setShow(false)} />}
+      <button onClick={() => setShow(state => state + 1)}>show popup</button>
     </>
   )
 }
